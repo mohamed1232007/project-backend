@@ -2,43 +2,36 @@ const express = require("express");
 const app = express();
 const port = process.env.PORT || 3000;
 const mongoose = require("mongoose");
+const path = require("path");
+const methodOverride = require("method-override");
+
+// Middlewares
 app.use(express.urlencoded({ extended: true }));
-app.set("view engine", "ejs");
-app.use(express.static("public"));
-var methodOverride = require("method-override");
 app.use(methodOverride("_method"));
 
-// Auto refresh
-const path = require("path");
-const livereload = require("livereload");
-const liveReloadServer = livereload.createServer();
-liveReloadServer.watch(path.join(__dirname, "public"));
+// View Engine & Static Files Setup
+app.set("view engine", "ejs");
+app.set("views", path.join(__dirname, "views"));
+app.use(express.static(path.join(__dirname, "public")));
 
-const connectLivereload = require("connect-livereload");
-const console = require("console");
-app.use(connectLivereload());
-
-liveReloadServer.server.once("connection", () => {
-    setTimeout(() => {
-        liveReloadServer.refresh("/");
-    }, 100);
-});
-
+// Routes
 const userRoutes = require("./routes/userRoutes");
 app.use(userRoutes);
 
+// Database Connection
 mongoose
     .connect(
         "mongodb+srv://mohamedibraim1232007_db_user:FY6fpIuDNAAFNGqE@system.pr2ofly.mongodb.net/all-data?appName=system",
     )
     .then(() => {
-        app.listen(port, () => {
-            console.log(`http://localhost:${port}/`);
-        });
+        if (process.env.NODE_ENV !== "production") {
+            app.listen(port, () => {
+                console.log(`Server running on http://localhost:${port}/`);
+            });
+        }
     })
     .catch((err) => {
         console.log(err);
     });
-
 
 module.exports = app;
